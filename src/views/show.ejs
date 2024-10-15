@@ -1,0 +1,13 @@
+<%- include('components/head') %>
+
+<div>
+    <% data.forEach((e) => { %> <!-- Use forEach for iteration -->
+        <div>
+            <h1><%= e.title %></h1>
+            <p><%= e.description %></p>
+            <img src="/uploads/<%= e.img_url %>" alt="<%= e.title %>">
+        </div>
+    <% }) %>
+</div>
+
+<%- include('components/foot') %>
