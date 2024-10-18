@@ -15,3 +15,11 @@ model products {
   price       Int?
   stock       Int?
 }
+
+model users {
+  id    Int     @id @default(autoincrement())
+  name  String? @db.VarChar(100)
+  role  String? @db.VarChar(5)
+  email String? @db.VarChar(100)
+  phone String? @db.VarChar(30)
+}
