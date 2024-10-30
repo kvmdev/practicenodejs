@@ -1,0 +1,51 @@
+<%- include('components/head') %>
+
+<form id="form">
+    <input type="text" id="title" name="title" placeholder="Title" value="<%= data.title %>" required>
+    <input type="text" id="description" name="description" placeholder="Description" value="<%= data.description %>" required>
+    <input type="file" id="image" name="image" accept="image/*">
+    <input type="number" id="stock" name="stock" placeholder="Stock" value="<%= data.stock %>" required>
+    <input type="number" id="price" name="price" placeholder="Price" value="<%= data.price %>" required>
+    <input type="submit" value="Update">
+</form>
+
+<script>
+    const form = document.getElementById('form')
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault()
+        try {
+            const formData = new FormData();
+            formData.append('title', document.getElementById('title').value);
+            formData.append('description', document.getElementById('description').value);
+            formData.append('price', document.getElementById('price').value);
+            formData.append('stock', document.getElementById('stock').value);
+
+            if (document.getElementById('image').files.length > 0) {
+                formData.append('image', fileInput.files[0]); // Append the file if present
+            }
+            
+            const params = new URLSearchParams(window.location.search)
+            const id = params.get('id')
+            
+            const response = await fetch('http://localhost:3000/api/products?id=' + id, {
+                method: 'PUT',
+                body: formData
+            })
+
+            const result = await response.json()
+
+            if(response.ok) {
+                alert('File uploaded')
+                /* window.location.href = '/show' */
+            } else {
+                alert('Upload failed')
+            }
+        } catch (error) {
+            console.log(error)
+            alert('There was an error')
+        }
+
+    })
+</script>
+
+<%- include('components/foot') %>

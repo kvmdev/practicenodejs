@@ -1,13 +1,67 @@
 <%- include('components/head') %>
 
 <div>
-    <% data.forEach((e) => { %> <!-- Use forEach for iteration -->
-        <div>
-            <h1><%= e.title %></h1>
-            <p><%= e.description %></p>
-            <img src="/uploads/<%= e.img_url %>" alt="<%= e.title %>">
-        </div>
-    <% }) %>
+  <div id="products-container">
+      
+  </div>
+      <ul class="navigator">
+        <!-- <div>
+          
+        </div> -->
+      </ul>
 </div>
+
+<script>
+    async function getProducts(offset = '') {
+      try {
+        let url = '/api/products';
+        if(offset !== '') {
+          url += `?offset=${offset}`
+        }
+        const products = await fetch(url);
+        return products;
+      } catch (error) {
+        alert('There was an error');
+        return
+      }
+    }
+    const productsContainer = document.getElementById('products-container');
+
+    getProducts().then(res => res.json()).then(products => {
+      products.data.forEach(product => {
+        const div = document.createElement("div")
+        const img = document.createElement("img")
+        const h2 = document.createElement("h2")
+        const p = document.createElement("p")
+        const updateButton = document.createElement("a")
+        const deleteButton = document.createElement("button")
+
+        updateButton.href = '/update?id=' + product.id
+        updateButton.innerText = 'Update'
+        deleteButton.onclick = async ()=> {
+          try {
+            const response = await fetch('http://localhost:3000/api/products?id=' + product.id, {
+              method: 'DELETE'
+            })
+
+            if(response.ok) {
+              alert('se elimino correctamente')
+            } else {
+              alert("no se pudo eliminar")
+            }
+          } catch (error) {
+            alert("no funco")
+          }
+        }
+        deleteButton.innerText = 'Delete'
+        img.src = '/uploads/' + product.img_url
+        h2.innerText = product.title
+        p.innerText = product.description
+        div.append(img, h2, p, updateButton, deleteButton)
+        productsContainer.appendChild(div)
+      });
+    })
+
+</script>
 
 <%- include('components/foot') %>
