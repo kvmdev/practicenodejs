@@ -15,12 +15,13 @@
         e.preventDefault()
         try {
             const formData = new FormData();
+            const fileInput = document.getElementById('image')
             formData.append('title', document.getElementById('title').value);
             formData.append('description', document.getElementById('description').value);
             formData.append('price', document.getElementById('price').value);
             formData.append('stock', document.getElementById('stock').value);
 
-            if (document.getElementById('image').files.length > 0) {
+            if (fileInput.files.length > 0) {
                 formData.append('image', fileInput.files[0]); // Append the file if present
             }
             
