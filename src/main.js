@@ -1,20 +1,16 @@
 import { prisma } from "../config/db.js"
-import { create, getAll } from "./controllers/productsController.js"
 import express from "express"
 import path, { dirname } from 'path'
 import { fileURLToPath } from "url" 
 import { join } from "path"
-import multer from "multer"
-import { storage } from "./service/multerUploader.js"
-import { showAll } from "./controllers/frontController.js"
+import router from "./routes/index.js"
 
 
 const app = express()
+app.use(express.json())
 app.set('view engine', 'ejs')
 app.set('views', join(dirname(fileURLToPath(import.meta.url)), 'views'))
-app.use('/uploads', express.static(path.join(dirname(fileURLToPath(import.meta.url)), 'uploads')));
-
-const upload = multer({storage})
+app.use('/uploads', express.static(path.join(dirname(fileURLToPath(import.meta.url)), 'uploads')))
 
 app.use(async (req, res, next)=> {
     try {
@@ -26,13 +22,25 @@ app.use(async (req, res, next)=> {
     }
 })
 
+app.use('/api', router)
+
 app.get('/', (req, res) => {
     res.render('create')
-}) 
+})
 
-app.get('/show', showAll)
+app.get('/show', (req, res) => {
+    res.render('show')
+})
 
-app.post('/createProduct', upload.single('image'), create)
+app.get('/update', async (req, res) => {
+    const { id } = req.query
+    const data = await prisma.products.findUnique({
+        where: {
+            id: Number(id)
+        }
+    })
+    res.render('update', {data})
+})
 
 app.listen(3000, ()=> {
     console.log('http://localhost:3000/')
