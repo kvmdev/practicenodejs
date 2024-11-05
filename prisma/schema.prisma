@@ -8,12 +8,25 @@ datasource db {
 }
 
 model products {
-  id          Int     @id @default(autoincrement())
-  title       String? @db.VarChar
-  description String? @db.VarChar(150)
-  img_url     String? @db.VarChar
+  id          Int       @id @default(autoincrement())
+  title       String?   @db.VarChar
+  description String?   @db.VarChar(150)
+  img_url     String?   @db.VarChar
   price       Int?
   stock       Int?
+  category_id Int 
+  category    category @relation(fields: [category_id], references: [id])
+  created_at  DateTime? @default(now()) @db.Date
+  updated_at  DateTime? @default(now()) @db.Date
+}
+
+model category {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique(map: "unique_name") @db.VarChar(50)
+  description String   @db.VarChar(200)
+  created_at  DateTime @default(now()) @db.Date
+  updated_at  DateTime @default(now()) @db.Date
+  products    products[]
 }
 
 model users {
