@@ -28,18 +28,16 @@ app.get('/', (req, res) => {
     res.render('create')
 })
 
+app.get('/create', (req, res) => {
+    res.render('create-category')
+})
+
 app.get('/show', (req, res) => {
     res.render('show')
 })
 
 app.get('/update', async (req, res) => {
-    const { id } = req.query
-    const data = await prisma.products.findUnique({
-        where: {
-            id: Number(id)
-        }
-    })
-    res.render('update', {data})
+    res.render('update')
 })
 
 app.listen(3000, ()=> {
