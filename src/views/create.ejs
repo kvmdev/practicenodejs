@@ -1,18 +1,51 @@
 <%- include('components/head') %>
 
 <form id="form">
+    <h1>Product</h1>
     <input type="text" id="title" name="title" placeholder="Title"  />
     <input type="text" id="description" name="description" placeholder="Description"  />
     <input type="number" id="price" name="price" placeholder="Price"  />
     <input type="number" id="stock" name="stock" placeholder="Stock"  />
     <input type="file" id="image" name="image" accept="image/*" />
+    <select name="category" id="category">
+
+    </select>
     <button type="submit">Submit</button>
 </form>
 
 <script>
+    const categorySelect = document.getElementById('category')
+    let selectedCategory = ''
+    const fetchAndPutCategories = async () => {
+        try {
+            const response = await fetch('/api/categories')
+            const data = await response.json()
+            data.forEach(e => {
+                const option = document.createElement('option')
+                option.innerText = e.name
+                option.value = e.name
+                option.dataset.id = e.id
+                categorySelect.appendChild(option)
+            })
+
+            if(data.length > 0) {
+                selectedCategory = data[0].id
+            }
+        } catch (error) {
+            alert('there was an error')
+        }
+    }
+    fetchAndPutCategories()
+
+    categorySelect.addEventListener('change', (e) => {
+        selectedCategory = e.target.selectedOptions[0].dataset.id
+    })
+    
     const form = document.getElementById('form');
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
+
+        console.log(selectedCategory)
 
         // Create a FormData object and append each field individually
         const formData = new FormData();
@@ -20,35 +53,34 @@
         formData.append('description', document.getElementById('description').value);
         formData.append('price', document.getElementById('price').value);
         formData.append('stock', document.getElementById('stock').value);
-        
-        console.log(formData)
+        formData.append('category_id', selectedCategory)
 
         const fileInput = document.getElementById('image');
         if (fileInput.files.length > 0) {
             formData.append('image', fileInput.files[0]); // Append the file if present
         }
-
-        console.log(formData)
         
         try {
-            const response = await fetch('http://localhost:3000/api/products', {
+            const response = await fetch('/api/products', {
                 method: 'POST',
                 body: formData
             });
 
             const result = await response.json();
 
+            console.log(result)
+
             if (response.ok) {
                 alert('File uploaded successfully');
                 window.location.reload();
             } else {
-                alert('Upload failed: ' + result.errors);
+                alert('Upload failed: ' + result.message);
             }
         } catch (error) {
             console.error(error);
             alert('There was an error with the request');
         }
-    });
+    })
 </script>
 
 <%- include('components/foot')%>

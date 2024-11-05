@@ -1,15 +1,77 @@
 <%- include('components/head') %>
 
 <form id="form">
-    <input type="text" id="title" name="title" placeholder="Title" value="<%= data.title %>" required>
-    <input type="text" id="description" name="description" placeholder="Description" value="<%= data.description %>" required>
+    <input type="text" id="title" name="title" placeholder="Title" required>
+    <input type="text" id="description" name="description" placeholder="Description" required>
     <input type="file" id="image" name="image" accept="image/*">
-    <input type="number" id="stock" name="stock" placeholder="Stock" value="<%= data.stock %>" required>
-    <input type="number" id="price" name="price" placeholder="Price" value="<%= data.price %>" required>
+    <input type="number" id="stock" name="stock" placeholder="Stock" required>
+    <input type="number" id="price" name="price" placeholder="Price" required>
+    <select name="category_id" id="category_id"></select>
     <input type="submit" value="Update">
 </form>
 
 <script>
+    const product_id = new URLSearchParams(window.location.search).get('id')
+    const title = document.getElementById('title')
+    const description = document.getElementById('description')
+    const stock = document.getElementById('stock')
+    const price = document.getElementById('price')
+    const category_id = document.getElementById('category_id')
+    window.selectedCategoryId = 0
+
+    const fetchCategories = async () => {
+        try {
+            const response = await fetch('/api/categories')
+            const data = await response.json()
+            return data
+        } catch (error) {
+            alert('error')
+            return 
+        }
+    }
+    const fetchData = async () => {
+        try {
+            const response = await fetch(`/api/products/${product_id}`)
+            if(!response.ok) {
+                alert("The product doesn't exist")
+                window.location.href = '/'
+            }
+            const data = await response.json()
+            return data
+        } catch (error) {
+            alert('there was an error')
+            return
+        }
+    }
+    fetchData()
+    .then(dat => {
+        title.value = dat.title
+        description.value = dat.description
+        stock.value = dat.stock
+        price.value = dat.price
+        return new Promise((res)=> res(dat))
+    })
+    .then((dat)=> {
+        fetchCategories().then(dat2 => {
+            dat2.forEach((e, i) => {
+                const option = document.createElement('option')
+                option.innerText = e.name
+                option.value = e.name
+                option.dataset.id = e.id
+                category_id.appendChild(option)
+                if(e.id == dat.category.id) {
+                    category_id.selectedIndex = i
+                    window.selectedCategoryId = e.id
+                    console.log(window.selectedCategoryId)
+                }
+            })
+        })
+    })
+    
+    category_id.addEventListener('change', (e) => {
+        window.selectedCategoryId = e.target.selectedOptions[0].dataset.id
+    })
+
     const form = document.getElementById('form')
     form.addEventListener('submit', async (e) => {
         e.preventDefault()
@@ -20,15 +82,13 @@
             formData.append('description', document.getElementById('description').value);
             formData.append('price', document.getElementById('price').value);
             formData.append('stock', document.getElementById('stock').value);
+            formData.append('category_id', window.selectedCategoryId);
 
             if (fileInput.files.length > 0) {
                 formData.append('image', fileInput.files[0]); // Append the file if present
             }
             
-            const params = new URLSearchParams(window.location.search)
-            const id = params.get('id')
-            
-            const response = await fetch('http://localhost:3000/api/products?id=' + id, {
+            const response = await fetch('http://localhost:3000/api/products?id=' + product_id, {
                 method: 'PUT',
                 body: formData
             })

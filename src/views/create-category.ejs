@@ -1,0 +1,40 @@
+<%- include('components/head') %>
+
+<form id="form-category">
+    <h1>Category</h1>
+    <input type="text" id="name" name="name" placeholder="Name"  />
+    <input type="text" id="description-category" name="description" placeholder="Description"  />
+    <button type="submit">Submit</button>
+</form>
+
+<script>
+    const formCategory = document.getElementById('form-category');
+    formCategory.addEventListener('submit', async (e) => {
+        e.preventDefault()
+        const name = document.getElementById('name').value
+        const description = document.getElementById('description-category').value
+        console.log(name, description)
+        try {
+            const response = await fetch('/api/categories', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    name,
+                    description
+                })
+            })
+            const data = await response.json()
+            if(response.ok) {
+                alert('Se creo la categoria')
+            } else {
+                throw Error(data)
+            }
+        } catch (error) {
+            console.log(error)
+        }
+    })
+</script>
+
+<%- include('components/foot')%>

@@ -12,11 +12,11 @@
 </div>
 
 <script>
-    async function getProducts(offset = '') {
+    async function getProducts(page = '') {
       try {
         let url = '/api/products';
-        if(offset !== '') {
-          url += `?offset=${offset}`
+        if(page !== '') {
+          url += `?page=${page}`
         }
         const products = await fetch(url);
         return products;
@@ -33,6 +33,7 @@
         const img = document.createElement("img")
         const h2 = document.createElement("h2")
         const p = document.createElement("p")
+        const pCategory = document.createElement('p')
         const updateButton = document.createElement("a")
         const deleteButton = document.createElement("button")
 
@@ -53,11 +54,12 @@
             alert("no funco")
           }
         }
+        pCategory.innerText = product.category.name
         deleteButton.innerText = 'Delete'
         img.src = '/uploads/' + product.img_url
         h2.innerText = product.title
         p.innerText = product.description
-        div.append(img, h2, p, updateButton, deleteButton)
+        div.append(img, h2, p, pCategory, updateButton, deleteButton)
         productsContainer.appendChild(div)
       });
     })
