@@ -9,10 +9,15 @@ const imgPath = path.join(dirname(fileURLToPath(import.meta.url)), '..', 'upload
 const getAllController = async (req, res) => {
     try {
         const limit = 10
-        const offset = parseInt(req.query.offset) || 1
-        let skip = (offset * limit) - limit
+
+        const page = Number(req.query.page) || 1;
+
+        let skip = (page * limit) - limit
     
         const data = await prisma.products.findMany({
+            include: {
+                category: true
+            },
           take: limit,
           skip
         })
@@ -22,19 +27,25 @@ const getAllController = async (req, res) => {
     
         res.json({data, count, quantity: data.length})
       } catch (error) {
-        res.send('error')
+        res.json({message: 'There was an error'})
       }
 }
 
 const getById = async (req, res) => {
     try {
-        const { id } = req.query
+        const { id } = req.params
         const product = await prisma.products.findUnique({
             where: {
-                id: id
+                id: Number(id)
+            },
+            include: {
+                category: true
             }
         })
-        res.json({ product })
+        if(!product) {
+            return res.status(404).json({message: 'The product doesnt exist'})
+        }
+        res.json(product)
     } catch (error) {
         res.status(500).json({message: 'There was an error'})
     }
@@ -43,7 +54,7 @@ const getById = async (req, res) => {
 const createController = async (req, res) => {
     try {
 
-        const { title, description, price, stock } = req.validatedData
+        const { title, description, price, stock, category_id } = req.validatedData
 
         let imagename = ''
         
@@ -62,8 +73,9 @@ const createController = async (req, res) => {
             img_url: imagename, // Store the filename only
             title, // Get title from the form
             description, // Get description from the form
-            price: Number(price), // Get price from the form
-            stock: Number(stock) // Get stock from the form
+            price: price, // Get price from the form
+            stock: stock, // Get stock from the form
+            category_id
         }
 
         await prisma.products.create({data: imageMetadata})
@@ -77,14 +89,19 @@ const createController = async (req, res) => {
 
 const updateController = async (req, res) => {
     try {
-        const { title, description, price, stock } = req.validatedData
+        const { title, description, price, stock, category_id } = req.validatedData
         const { id } = req.query
+        let imagename = ''
         const product = await prisma.products.findUnique({
             where: {
                 id: Number(id)
             }
         })
-        const data = {title, description, price: Number(price), stock: Number(stock), img_url: product.img_url}
+        if(!product) {
+            console.log('Not found product 404')
+            return res.status(404).json({message: `The product doesn't exist`})
+        }
+        const data = {title, description, price: Number(price), stock: Number(stock), img_url: product.img_url, category_id: Number(category_id)}
 
         if(req.file) {
             if(data.img_url) {
@@ -115,6 +132,7 @@ const updateController = async (req, res) => {
 
         res.json({message: 'Updated successfully'})
     } catch (error) {
+        console.log(error)
         res.status(500).json({message: 'There was an error'})
     }
 }
@@ -123,13 +141,23 @@ const deleteController = async (req, res) => {
     try {
         const { id } = req.query
         
-        const result = await prisma.products.findUnique({
+        const product = await prisma.products.findUnique({
             where: {
                 id: Number(id)
             }
-        });
+        })
 
-        const imgPath = path.join(dirname(fileURLToPath(import.meta.url)), '..', 'uploads', result.img_url);
+        if(!product) {
+            return res.status(404).json({message: 'The product doesnt exist'})
+        }
+
+        const imgPath = path.join(dirname(fileURLToPath(import.meta.url)), '..', 'uploads', product.img_url);
+
+        const result = await prisma.products.delete({where: {id: Number(id)}})
+
+        if(!result) {
+            return res.status(500).json({message: 'There was an error'})
+        }
 
         if(fs.existsSync(imgPath)) {
             fs.unlink(imgPath, (err) => {
@@ -142,7 +170,6 @@ const deleteController = async (req, res) => {
             })
         }
 
-        await prisma.products.delete({where: {id: Number(id)}})
 
         res.json({message: 'Deleted successfully'});
     } catch (error) {
